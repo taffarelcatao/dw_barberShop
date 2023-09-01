@@ -8,8 +8,8 @@ class AvatarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 100,
-      height: 100,
+      width: 102,
+      height: 102,
       child: Stack(
         children: [
           Container(
