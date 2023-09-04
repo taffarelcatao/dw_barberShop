@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:dw_barbershop/src/core/ui/constants.dart';
 
 class HoursPanel extends StatelessWidget {
+  final List<int>? enabledTimes;
   final int startTime;
   final int endTime;
   final ValueChanged<int> onHourPressed;
   const HoursPanel({
     super.key,
+    this.enabledTimes,
     required this.startTime,
     required this.endTime,
     required this.onHourPressed,
@@ -35,6 +37,7 @@ class HoursPanel extends StatelessWidget {
           children: [
             for (int i = startTime; i <= endTime; i++)
               TimeButton(
+                enabledTimes: enabledTimes,
                 label: '${i.toString().padLeft(2, '0')}:00',
                 value: i,
                 onPressed: onHourPressed,
@@ -47,11 +50,13 @@ class HoursPanel extends StatelessWidget {
 }
 
 class TimeButton extends StatefulWidget {
+  final List<int>? enabledTimes;
   final String label;
   final int value;
   final ValueChanged<int> onPressed;
   const TimeButton({
     Key? key,
+    this.enabledTimes,
     required this.label,
     required this.value,
     required this.onPressed,
@@ -69,14 +74,25 @@ class _TimeButtonState extends State<TimeButton> {
     var buttonColor = selected ? ColorsConstants.brow : Colors.white;
     var buttonBorderColor =
         selected ? ColorsConstants.brow : ColorsConstants.grey;
+
+    final TimeButton(:value, :label, :enabledTimes, :onPressed) = widget;
+
+    final disableTime = enabledTimes != null && !enabledTimes.contains(value);
+
+    if (disableTime) {
+      buttonColor = Colors.grey[400]!;
+    }
+
     return InkWell(
       borderRadius: BorderRadius.circular(8),
-      onTap: () {
-        setState(() {
-          selected = !selected;
-          widget.onPressed(widget.value);
-        });
-      },
+      onTap: disableTime
+          ? null
+          : () {
+              setState(() {
+                selected = !selected;
+                onPressed(value);
+              });
+            },
       child: Container(
         width: 64,
         height: 36,
