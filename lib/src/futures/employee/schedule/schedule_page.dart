@@ -4,19 +4,21 @@ import 'package:dw_barbershop/src/core/ui/helpers/messages.dart';
 import 'package:dw_barbershop/src/core/ui/widgets/avatar_widget.dart';
 import 'package:dw_barbershop/src/core/ui/widgets/barbershop_icons.dart';
 import 'package:dw_barbershop/src/core/ui/widgets/hours_panel.dart';
+import 'package:dw_barbershop/src/futures/employee/schedule/schedule_vm.dart';
 import 'package:dw_barbershop/src/futures/employee/schedule/widgets/schedule_calendar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:validatorless/validatorless.dart';
 
-class SchedulePage extends StatefulWidget {
+class SchedulePage extends ConsumerStatefulWidget {
   const SchedulePage({super.key});
 
   @override
-  State<SchedulePage> createState() => _SchedulePageState();
+  ConsumerState<SchedulePage> createState() => _SchedulePageState();
 }
 
-class _SchedulePageState extends State<SchedulePage> {
+class _SchedulePageState extends ConsumerState<SchedulePage> {
   var dateFormat = DateFormat('dd/MM/yyyy');
   var showCalendar = false;
   final formKey = GlobalKey<FormState>();
@@ -32,6 +34,7 @@ class _SchedulePageState extends State<SchedulePage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheduleVM = ref.watch(scheduleVmProvider.notifier);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Agendar Cliente'),
@@ -94,7 +97,7 @@ class _SchedulePageState extends State<SchedulePage> {
                     offstage: !showCalendar,
                     child: Column(
                       children: [
-                        SizedBox(
+                        const SizedBox(
                           height: 24,
                         ),
                         ScheduleCalendar(
@@ -106,6 +109,7 @@ class _SchedulePageState extends State<SchedulePage> {
                           okPressed: (DateTime value) {
                             setState(() {
                               dateEC.text = dateFormat.format(value);
+                              scheduleVM.dateSelect(value);
                               showCalendar = false;
                             });
                           },
@@ -116,11 +120,11 @@ class _SchedulePageState extends State<SchedulePage> {
                   const SizedBox(
                     height: 24,
                   ),
-                  HoursPanel(
+                  HoursPanel.singleSelection(
                     startTime: 6,
                     endTime: 23,
-                    onHourPressed: (hour) {},
-                    enabledTimes: [6, 7, 8],
+                    onHourPressed: scheduleVM.hourSelect,
+                    enabledTimes: const [6, 7, 8],
                   ),
                   const SizedBox(
                     height: 24,
@@ -134,7 +138,17 @@ class _SchedulePageState extends State<SchedulePage> {
                         case null || false:
                           Messages.showError('Dados incompletos', context);
                         case true:
-                        //chamada do Vm
+                          //chamada do Vm
+                          final hourSelected = ref.watch(scheduleVmProvider
+                              .select((state) => state.scheduleHour != null));
+
+                          if (hourSelected) {
+                            //register
+                          } else {
+                            Messages.showError(
+                                'Por favor selecione um horário de atendimento',
+                                context);
+                          }
                       }
                     },
                     child: const Text('AGENDAR'),
