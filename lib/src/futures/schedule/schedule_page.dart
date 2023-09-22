@@ -4,8 +4,10 @@ import 'package:dw_barbershop/src/core/ui/helpers/messages.dart';
 import 'package:dw_barbershop/src/core/ui/widgets/avatar_widget.dart';
 import 'package:dw_barbershop/src/core/ui/widgets/barbershop_icons.dart';
 import 'package:dw_barbershop/src/core/ui/widgets/hours_panel.dart';
-import 'package:dw_barbershop/src/futures/employee/schedule/schedule_vm.dart';
-import 'package:dw_barbershop/src/futures/employee/schedule/widgets/schedule_calendar.dart';
+import 'package:dw_barbershop/src/futures/schedule/schedule_state.dart';
+import 'package:dw_barbershop/src/futures/schedule/schedule_vm.dart';
+import 'package:dw_barbershop/src/futures/schedule/widgets/schedule_calendar.dart';
+import 'package:dw_barbershop/src/model/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -34,7 +36,32 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
 
   @override
   Widget build(BuildContext context) {
+    final userModel = ModalRoute.of(context)!.settings.arguments as UserModel;
     final scheduleVM = ref.watch(scheduleVmProvider.notifier);
+
+    final employeeData = switch (userModel) {
+      UserModelADM(:final workDays, :final workHours) => (
+          workDays: workDays!,
+          workHours: workHours!
+        ),
+      UserModelEmployee(:final workDays, :final workHours) => (
+          workDays: workDays,
+          workHours: workHours
+        )
+    };
+
+    ref.listen(scheduleVmProvider.select((state) => state.status), (_, status) {
+      switch (status) {
+        case ScheduleStateStatus.initial:
+          break;
+        case ScheduleStateStatus.success:
+          Messages.showSuccess('Cliente agendado com sucesso', context);
+          Navigator.of(context).pop();
+        case ScheduleStateStatus.error:
+          Messages.showError('Erro ao registrar agendamento', context);
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Agendar Cliente'),
@@ -51,9 +78,9 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
                   const SizedBox(
                     height: 32,
                   ),
-                  const Text(
-                    'Nome e Sobrenome',
-                    style: TextStyle(
+                  Text(
+                    userModel.name,
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w500,
                     ),
@@ -113,6 +140,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
                               showCalendar = false;
                             });
                           },
+                          workDays: employeeData.workDays,
                         ),
                       ],
                     ),
@@ -121,11 +149,10 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
                     height: 24,
                   ),
                   HoursPanel.singleSelection(
-                    startTime: 6,
-                    endTime: 23,
-                    onHourPressed: scheduleVM.hourSelect,
-                    enabledTimes: const [6, 7, 8],
-                  ),
+                      startTime: 6,
+                      endTime: 23,
+                      onHourPressed: scheduleVM.hourSelect,
+                      enabledTimes: employeeData.workHours),
                   const SizedBox(
                     height: 24,
                   ),
@@ -143,7 +170,9 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
                               .select((state) => state.scheduleHour != null));
 
                           if (hourSelected) {
-                            //register
+                            scheduleVM.register(
+                                userModel: userModel,
+                                clientName: clienteEC.text);
                           } else {
                             Messages.showError(
                                 'Por favor selecione um horário de atendimento',

@@ -23,7 +23,7 @@ class HomeAdmVm extends _$HomeAdmVm {
       case Success(value: final employeesData):
         final employeess = <UserModel>[];
 
-        if (me case UserModelADM(workDays: _?, workHors: _?)) {
+        if (me case UserModelADM(workDays: _?, workHours: _?)) {
           employeess.add(me);
         }
         employeess.addAll(employeesData);

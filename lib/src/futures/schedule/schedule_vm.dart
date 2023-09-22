@@ -1,11 +1,11 @@
 import 'package:asyncstate/asyncstate.dart';
 import 'package:dw_barbershop/src/core/fp/either.dart';
 import 'package:dw_barbershop/src/core/providers/application_providers.dart';
-import 'package:dw_barbershop/src/futures/employee/schedule/schedule_state.dart';
+import 'package:dw_barbershop/src/futures/schedule/schedule_state.dart';
 import 'package:dw_barbershop/src/model/barbershop_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../model/user_model.dart';
+import '../../model/user_model.dart';
 
 part 'schedule_vm.g.dart';
 
